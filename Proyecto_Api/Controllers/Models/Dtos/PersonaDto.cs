@@ -1,8 +1,13 @@
-﻿namespace Proyecto_Api.Controllers.Models.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Proyecto_Api.Controllers.Models.Dtos
 {
     public class PersonaDto
     {
         public int Id { get; set; }
+
+        //[Required]
+       //[MaxLength(30)]
         public string name { get; set; }
     }
 }

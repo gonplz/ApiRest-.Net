@@ -4,7 +4,7 @@ namespace Proyecto_Api.Data
 {
     public static class PersonaStore
     {
-        public static List<PersonaDto> personaListDtos = new List<PersonaDto>
+        public static List<PersonaDto> personaList = new List<PersonaDto>
         {
               new PersonaDto {Id=1, name="Diego",},
               new PersonaDto {Id=2, name="Fran"},
