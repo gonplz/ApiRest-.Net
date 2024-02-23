@@ -31,3 +31,7 @@ C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\obj\Debug\net8.0\refi
 C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\obj\Debug\net8.0\Proyecto_Api.pdb
 C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\obj\Debug\net8.0\Proyecto_Api.genruntimeconfig.cache
 C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\obj\Debug\net8.0\ref\Proyecto_Api.dll
+C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\bin\Debug\net8.0\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\bin\Debug\net8.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\Usuario\Desktop\PoyectoNET\Proyectos\Proyecto_Api\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll

@@ -4,6 +4,7 @@ namespace Proyecto_Api.Controllers.Models.Dtos
 {
     public class PersonaDto
     {
+        [Key]
         public int Id { get; set; }
 
        [Required]

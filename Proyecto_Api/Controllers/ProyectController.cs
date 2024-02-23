@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_Api.Controllers.Models;
 using Proyecto_Api.Controllers.Models.Dtos;
 using Proyecto_Api.Data;
+using System.Text.Json;
 
 namespace Proyecto_Api.Controllers
 {
@@ -10,9 +12,18 @@ namespace Proyecto_Api.Controllers
     [ApiController]
     public class ProyectController : ControllerBase
     {
+        private readonly ILogger<ProyectController> _logger;
+
+        public ProyectController(ILogger<ProyectController> logger)
+        {
+            _logger = logger;
+        }
+
+
         [HttpGet]
         public ActionResult<IEnumerable<PersonaDto>> GetPersonas()
         {
+            _logger.LogInformation("Obtener Personas");
             return Ok(PersonaStore.personaList);
         }
 
@@ -24,6 +35,7 @@ namespace Proyecto_Api.Controllers
         {
             if (id == 0)
             {
+                _logger.LogInformation("Error al traer el Id " + id);
                 return BadRequest();
             }
 
@@ -105,6 +117,7 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
+        //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
         public IActionResult UpdatePersona(int id, [FromBody] PersonaDto personaDto )
         {
             if(personaDto == null || id != personaDto.Id)
@@ -115,6 +128,31 @@ namespace Proyecto_Api.Controllers
             var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
             perso.name = personaDto.name;
             perso.number = personaDto.number;
+
+            return NoContent();
+
+        }
+
+        [HttpPatch("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+        //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
+        public IActionResult UpdateOnePersona(int id, JsonPatchDocument<PersonaDto> pachtDto)
+        {
+            if (pachtDto == null || id == 0)
+            {
+                return BadRequest();
+            }
+
+            var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
+
+            pachtDto.ApplyTo(perso,ModelState);
+            
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             return NoContent();
 
