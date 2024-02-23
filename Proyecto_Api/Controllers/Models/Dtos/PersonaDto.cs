@@ -6,8 +6,8 @@ namespace Proyecto_Api.Controllers.Models.Dtos
     {
         public int Id { get; set; }
 
-        //[Required]
-       //[MaxLength(30)]
+       [Required]
+       [MaxLength(30)]
         public string name { get; set; }
     }
 }
