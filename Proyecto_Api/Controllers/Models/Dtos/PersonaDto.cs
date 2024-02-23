@@ -9,5 +9,7 @@ namespace Proyecto_Api.Controllers.Models.Dtos
        [Required]
        [MaxLength(30)]
         public string name { get; set; }
+
+        public int number { get; set; }
     }
 }
