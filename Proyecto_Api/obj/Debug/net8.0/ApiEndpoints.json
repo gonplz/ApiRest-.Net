@@ -28,7 +28,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "personaDto",
+        "Name": "createPersonaDto",
         "Type": "Proyecto_Api.Models.Dtos.CreatePersonaDto",
         "IsRequired": true
       }
@@ -113,7 +113,7 @@
         "IsRequired": true
       },
       {
-        "Name": "personaDto",
+        "Name": "updatePersonaDto",
         "Type": "Proyecto_Api.Models.Dtos.UpdatePersonaDto",
         "IsRequired": true
       }
