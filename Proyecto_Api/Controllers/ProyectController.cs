@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Proyecto_Api.Controllers.Models;
-using Proyecto_Api.Controllers.Models.Dtos;
 using Proyecto_Api.Crud;
 using Proyecto_Api.Data;
+using Proyecto_Api.Models;
+using Proyecto_Api.Models.Dtos;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -18,18 +19,23 @@ namespace Proyecto_Api.Controllers
     {
         private readonly ILogger<ProyectController> _logger;
         private readonly DataBaseContext _database;
+        private readonly IMapper _mapper;
 
-        public ProyectController(ILogger<ProyectController> logger, DataBaseContext dataBase)
+        public ProyectController(ILogger<ProyectController> logger, DataBaseContext dataBase, IMapper mapper)
         {
             _logger = logger;
             _database = dataBase;
+            _mapper = mapper;   
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<PersonaDto>> GetPersonas()
+        public async Task<ActionResult<IEnumerable<PersonaDto>>> GetPersonas()
         {
             _logger.LogInformation("Obtener Personas");
-            return Ok(_database.Persona.ToList());
+
+            IEnumerable<Persona> personaList = await _database.Persona.ToListAsync();
+
+            return Ok(_mapper.Map<IEnumerable<Persona>>(personaList));
         }
 
         ///////////////////////////////////////////////////////GET///////////////////////////////////////////////////////////////////////////
@@ -39,7 +45,7 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<PersonaDto> GetIdPersona(int id)
+        public async Task<ActionResult<PersonaDto>> GetIdPersona(int id)
         {
             if (id == 0)
             {
@@ -49,14 +55,15 @@ namespace Proyecto_Api.Controllers
             //Metodo antiguo para pedir por Id
             //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
 
-            var perso = _database.Persona.FirstOrDefault(p => p.Id == id);
+            var perso = await _database.Persona.FirstOrDefaultAsync(p => p.Id == id);
+
 
             if (perso == null)
             {
                 return NotFound();
             }
 
-            return Ok(perso);
+            return Ok(_mapper.Map<PersonaDto>(perso));
         }
 
         ///////////////////////////////////////////////////////POST///////////////////////////////////////////////////////////////////////////
@@ -66,8 +73,8 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
-        //El [FromBody] se utiliza para deserializar y rnasformar los bytes en Objetos (Funciona con el Post y Put, por el momento) // 
-        public ActionResult<PersonaDto> CreatePersona([FromBody] PersonaDto personaDto)
+        //El [FromBody] se utiliza para deserializar y transformar los bytes en Objetos (Funciona con el Post y Put, por el momento) // 
+        public async Task<ActionResult<PersonaDto>> CreatePersona([FromBody] CreatePersonaDto createPersonaDto)
         {
             ////Validacion del Modelo, para verifiar que funcione correctamente el metodo post//
             if (!ModelState.IsValid)
@@ -77,7 +84,7 @@ namespace Proyecto_Api.Controllers
 
             //Validacion del Modelo, Personalizado. En caso de que el nombre ya este utilizado//
             //Reemplazando el PersonaStore.personasList por el _database.Persona
-            if (_database.Persona.FirstOrDefault(v => v.name.ToLower() == personaDto.name.ToLower()) != null)
+            if (await _database.Persona.FirstOrDefaultAsync(v => v.name.ToLower() == createPersonaDto.name.ToLower()) != null)
             {
                 ModelState.AddModelError("El nombre ya existe", "El nombre se encuentra en uso");
 
@@ -85,29 +92,21 @@ namespace Proyecto_Api.Controllers
             }
 
             //Haciendo una query para crear un nuevo usuario//
-            if (personaDto == null)
+            if (createPersonaDto == null)
             {
-                return BadRequest(personaDto);
-            }
-            if (personaDto.Id > 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return BadRequest(createPersonaDto);
             }
 
-            //Forma antigua
+            //Forma antigua, antes del mapper y antes de usar BD
             //personaDto.Id = PersonaStore.personaList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
             //PersonaStore.personaList.Add(personaDto);
 
-            Persona modelo = new()
-            {
-                name = personaDto.name,
-                number = personaDto.number,
-            };
+            Persona modelo = _mapper.Map<Persona>(createPersonaDto);
 
-            _database.Persona.Add(modelo);
-            _database.SaveChanges();
+            await _database.Persona.AddAsync(modelo);
+            await _database.SaveChangesAsync();
 
-            return CreatedAtRoute("GetIdPersona", new { id = personaDto.Id }, personaDto);
+            return CreatedAtRoute("GetIdPersona", new { id = modelo.Id }, modelo);
         }
 
         ///////////////////////////////////////////////////////DELETE///////////////////////////////////////////////////////////////////////////
@@ -117,16 +116,18 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
+        //El Delete no necesita mapeo//
+
         //El metodo borra permanentemente el id, pero no lo vuelve a uitilar a ese id(Buscar un metodo para volver a buscar el id)//
-        public IActionResult DeletePersona(int id)
+        public async Task<IActionResult> DeletePersona(int id)
         {
             if (id == 0)
             {
                 return BadRequest();
             }
             //Reemplazando el PersonaStore.personasList por el _database.Persona
-            //AssNoTracking... peticion asincrona?
-            var perso = _database.Persona.AsNoTracking().FirstOrDefault(v => v.Id == id);
+            //AssNoTracking... asincrona?(No es Async, es otra cosa)
+            var perso = await _database.Persona.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
             if (perso == null)
             {
                 return NotFound();
@@ -135,7 +136,7 @@ namespace Proyecto_Api.Controllers
             //PersonaStore.personaList.Remove(perso);
             //return NoContent();
             _database.Persona.Remove(perso);
-            _database.SaveChanges();
+            await _database.SaveChangesAsync();
             return NoContent();
             
         }
@@ -145,27 +146,18 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
-        //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
-        public IActionResult UpdatePersona(int id, [FromBody] PersonaDto personaDto )
+        //En Swagger tienen que coincidir los id al momento de la solicitud, porque sino tira un BadRequest.
+        public async Task<IActionResult> UpdatePersona(int id, [FromBody] UpdatePersonaDto updatePersonaDto )
         {
-            if(personaDto == null || id != personaDto.Id)
+            if(updatePersonaDto == null || id != updatePersonaDto.Id)
             {
                 return BadRequest();
             }
 
-            //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
-            //perso.name = personaDto.name;
-            //perso.number = personaDto.number;
-
-            Persona modelo = new()
-            {
-                Id = personaDto.Id,
-                name = personaDto.name,
-                number = personaDto.number,
-            };
+            Persona modelo = _mapper.Map<Persona>(updatePersonaDto);
 
             _database.Update(modelo);
-            _database.SaveChanges();
+            await _database.SaveChangesAsync();
             return NoContent();
 
         }
@@ -175,8 +167,7 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
-        //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
-        public IActionResult UpdateOnePersona(int id, JsonPatchDocument<PersonaDto> pachtDto)
+        public async Task<IActionResult> UpdateOnePersona(int id, JsonPatchDocument<UpdatePersonaDto> pachtDto)
         {
             if (pachtDto == null || id == 0)
             {
@@ -185,46 +176,27 @@ namespace Proyecto_Api.Controllers
 
             //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
 
-            var perso = _database.Persona.FirstOrDefault(p=>p.Id == id);
+            var perso = await _database.Persona.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
 
-            PersonaDto persona = new()
-            {
-                Id = perso.Id,
-                name = perso.name,
-                number = perso.number,
+            UpdatePersonaDto personaDto = _mapper.Map<UpdatePersonaDto>(perso);
 
-            };
+            if (perso == null) return BadRequest();
 
-            if (perso != null) return BadRequest();
-
-            pachtDto.ApplyTo(persona,ModelState);
+            pachtDto.ApplyTo(personaDto,ModelState);
             
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            Persona modelo = new()
-            {
-                Id = persona.Id,
-                name = persona.name,
-                number = persona.number,
-            };
+            Persona modelo = _mapper.Map<Persona>(personaDto);
+
 
             _database.Update(modelo);
-            _database.SaveChanges();
+           await _database.SaveChangesAsync();
 
             return NoContent();
 
         }
     }
 }
-
-//Implementar el sigueinte metodo mas tarde
-//[HttpDelete("{id}")]
-//public IActionResult Delete(int id)
-//{var persona = _personas.Find(p => p.Id == id);
-//if (persona == null)
-//{return NotFound();}
-//persona.IsActive = false;
-//return NoContent();}

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Proyecto_Api;
 using Proyecto_Api.Crud;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,8 @@ builder.Services.AddDbContext<DataBaseContext>(option=> {
 
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddAutoMapper(typeof(Mapping));
 
 var app = builder.Build();
 

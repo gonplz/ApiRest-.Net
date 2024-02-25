@@ -1,4 +1,4 @@
-﻿using Proyecto_Api.Controllers.Models.Dtos;
+﻿using Proyecto_Api.Models.Dtos;
 
 namespace Proyecto_Api.Data
 {

@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "ijPLIqbhNAqVqM/LCs151pdgbUpHJoJsVcw9ON2uOsYEiajJjnWZIaPwpdg7y2MDQvK79tl2jBtfk0t4InRl+A==",
+  "dgSpecHash": "S3IcSyTL8ivgpbyeNN5iT5zNxXQuDThYEPa6iRq3Lkaj9rSFfNawySzXS2abkoNVjcLWl3c9zgw9k8nSgYsiYg==",
   "success": true,
   "projectFilePath": "C:\\Users\\Usuario\\Desktop\\PoyectoNET\\Proyectos\\Proyecto_Api\\Proyecto_Api.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Usuario\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\Usuario\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\Usuario\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\Usuario\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
