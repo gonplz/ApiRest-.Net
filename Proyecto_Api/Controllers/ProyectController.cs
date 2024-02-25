@@ -9,6 +9,7 @@ using Proyecto_Api.Data;
 using Proyecto_Api.Models;
 using Proyecto_Api.Models.Dtos;
 using Proyecto_Api.Repository.IRepository;
+using System.Net;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -21,22 +22,36 @@ namespace Proyecto_Api.Controllers
         private readonly ILogger<ProyectController> _logger;
         private readonly IPersonaRepositorie _personaRepositorie;
         private readonly IMapper _mapper;
+        protected Response _response;
 
         public ProyectController(ILogger<ProyectController> logger, IPersonaRepositorie personaRepositorie, IMapper mapper)
         {
             _logger = logger;
             _personaRepositorie = personaRepositorie;
-            _mapper = mapper;   
+            _mapper = mapper;
+            _response = new();
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PersonaDto>>> GetPersonas()
+        public async Task<ActionResult<Response>> GetPersonas()
         {
-            _logger.LogInformation("Obtener Personas");
+            try
+            {
+                _logger.LogInformation("Obtener Personas");
 
-            IEnumerable<Persona> personaList = await _personaRepositorie.findAll();
+                IEnumerable<Persona> personaList = await _personaRepositorie.findAll();
 
-            return Ok(_mapper.Map<IEnumerable<Persona>>(personaList));
+                _response.result = _mapper.Map<IEnumerable<Persona>>(personaList);
+                _response.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_response);
+            }
+            catch (Exception x)
+            {
+                _response.isFine = false;
+                _response.errorMessage = new List<string> { x.ToString()};
+            }
+            return _response;
         }
 
         ///////////////////////////////////////////////////////GET///////////////////////////////////////////////////////////////////////////
@@ -46,25 +61,40 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PersonaDto>> GetIdPersona(int id)
+        public async Task<ActionResult<Response>> GetIdPersona(int id)
         {
-            if (id == 0)
+            try
             {
-                _logger.LogInformation("Error al traer el Id " + id);
-                return BadRequest();
+                if (id == 0)
+                {
+                    _logger.LogInformation("Error al traer el Id " + id);
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest(_response);
+                }
+                //Metodo antiguo para pedir por Id
+                //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
+
+                var perso = await _personaRepositorie.find(p => p.Id == id);
+
+
+                if (perso == null)
+                {
+                    _response.StatusCode=HttpStatusCode.NotFound;
+                    return NotFound(_response);
+                }
+
+                _response.result = _mapper.Map<PersonaDto>(perso);
+                _response.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_response);
+
             }
-            //Metodo antiguo para pedir por Id
-            //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
-
-            var perso = await _personaRepositorie.find(p => p.Id == id);
-
-
-            if (perso == null)
+            catch (Exception x)
             {
-                return NotFound();
+                _response.isFine = false;
+                _response.errorMessage = new List<string> { x.ToString() };
             }
-
-            return Ok(_mapper.Map<PersonaDto>(perso));
+            return _response;
         }
 
         ///////////////////////////////////////////////////////POST///////////////////////////////////////////////////////////////////////////
@@ -75,38 +105,50 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
         //El [FromBody] se utiliza para deserializar y transformar los bytes en Objetos (Funciona con el Post y Put, por el momento) // 
-        public async Task<ActionResult<PersonaDto>> CreatePersona([FromBody] CreatePersonaDto createPersonaDto)
+        public async Task<ActionResult<Response>> CreatePersona([FromBody] CreatePersonaDto createPersonaDto)
         {
-            ////Validacion del Modelo, para verifiar que funcione correctamente el metodo post//
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                ////Validacion del Modelo, para verifiar que funcione correctamente el metodo post//
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                //Validacion del Modelo, Personalizado. En caso de que el nombre ya este utilizado//
+                //Reemplazando el PersonaStore.personasList por el _database.Persona
+                if (await _personaRepositorie.find(v => v.name.ToLower() == createPersonaDto.name.ToLower()) != null)
+                {
+                    ModelState.AddModelError("El nombre ya existe", "El nombre se encuentra en uso");
+
+                    return BadRequest(ModelState);
+                }
+
+                //Haciendo una query para crear un nuevo usuario//
+                if (createPersonaDto == null)
+                {
+                    return BadRequest(createPersonaDto);
+                }
+
+                //Forma antigua, antes del mapper y antes de usar BD
+                //personaDto.Id = PersonaStore.personaList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
+                //PersonaStore.personaList.Add(personaDto);
+
+                Persona modelo = _mapper.Map<Persona>(createPersonaDto);
+
+                await _personaRepositorie.create(modelo);
+                _response.result = modelo;
+                _response.StatusCode = HttpStatusCode.Created;
+
+                return CreatedAtRoute("GetIdPersona", new { id = modelo.Id }, _response);
+            }
+            catch (Exception x)
+            {
+                _response.isFine = false;
+                _response.errorMessage = new List<string> { x.ToString() };
             }
 
-            //Validacion del Modelo, Personalizado. En caso de que el nombre ya este utilizado//
-            //Reemplazando el PersonaStore.personasList por el _database.Persona
-            if (await _personaRepositorie.find(v => v.name.ToLower() == createPersonaDto.name.ToLower()) != null)
-            {
-                ModelState.AddModelError("El nombre ya existe", "El nombre se encuentra en uso");
-
-                return BadRequest(ModelState);
-            }
-
-            //Haciendo una query para crear un nuevo usuario//
-            if (createPersonaDto == null)
-            {
-                return BadRequest(createPersonaDto);
-            }
-
-            //Forma antigua, antes del mapper y antes de usar BD
-            //personaDto.Id = PersonaStore.personaList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
-            //PersonaStore.personaList.Add(personaDto);
-
-            Persona modelo = _mapper.Map<Persona>(createPersonaDto);
-
-            await _personaRepositorie.create(modelo);
-
-            return CreatedAtRoute("GetIdPersona", new { id = modelo.Id }, modelo);
+            return _response;
         }
 
         ///////////////////////////////////////////////////////DELETE///////////////////////////////////////////////////////////////////////////
@@ -121,26 +163,44 @@ namespace Proyecto_Api.Controllers
         //El metodo borra permanentemente el id, pero no lo vuelve a uitilar a ese id(Buscar un metodo para volver a buscar el id)//
         public async Task<IActionResult> DeletePersona(int id)
         {
-            if (id == 0)
+            try
             {
-                return BadRequest();
+
+                if (id == 0)
+                {
+                    _response.isFine = false;
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest(_response);
+                }
+                //Reemplazando el PersonaStore.personasList por el _database.Persona
+                //AssNoTracking... asincrona?(No es Async, es otra cosa)
+                var perso = await _personaRepositorie.find(v => v.Id == id);
+                if (perso == null)
+                {
+                    _response.isFine = false;
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    return NotFound(_response);
+                }
+
+                //PersonaStore.personaList.Remove(perso);
+                //return NoContent();
+
+               await _personaRepositorie.delete(perso);
+
+                _response.StatusCode = HttpStatusCode.NoContent;
+                return Ok(_response);
+
             }
-            //Reemplazando el PersonaStore.personasList por el _database.Persona
-            //AssNoTracking... asincrona?(No es Async, es otra cosa)
-            var perso = await _personaRepositorie.find(v => v.Id == id);
-            if (perso == null)
+            catch (Exception x)
             {
-                return NotFound();
+                _response.isFine = false;
+                _response.errorMessage = new List<string> { x.ToString() };
             }
 
-            //PersonaStore.personaList.Remove(perso);
-            //return NoContent();
-
-            _personaRepositorie.delete(perso);
-
-            return NoContent();
-            
+            return BadRequest(_response);
         }
+
+
         ///////////////////////////////////////////////////////PUT///////////////////////////////////////////////////////////////////////////
         
         [HttpPut("{id:int}")]
@@ -152,19 +212,24 @@ namespace Proyecto_Api.Controllers
         {
             if(updatePersonaDto == null || id != updatePersonaDto.Id)
             {
-                return BadRequest();
+                _response.isFine = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
             }
 
             Persona modelo = _mapper.Map<Persona>(updatePersonaDto);
 
            var updatePersona = await _personaRepositorie.UpdatePersona(modelo);
+            _response.StatusCode=HttpStatusCode.NoContent;
 
             if (updatePersona == null)
             {
-                return BadRequest();
+                _response.isFine = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
             }
           
-            return NoContent();
+            return Ok(_response);
 
         }
         ///////////////////////////////////////////////////////PATCH///////////////////////////////////////////////////////////////////////////
@@ -199,13 +264,16 @@ namespace Proyecto_Api.Controllers
 
 
             var updatePersona = await _personaRepositorie.UpdatePersona(modelo);
+            _response.StatusCode = HttpStatusCode.NoContent;
 
             if (updatePersona == null)
             {
-                return BadRequest();
+                _response.isFine = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
             }
 
-            return NoContent();
+            return Ok(_response);
 
         }
     }
