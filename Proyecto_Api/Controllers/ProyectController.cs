@@ -8,6 +8,7 @@ using Proyecto_Api.Crud;
 using Proyecto_Api.Data;
 using Proyecto_Api.Models;
 using Proyecto_Api.Models.Dtos;
+using Proyecto_Api.Repository.IRepository;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -18,13 +19,13 @@ namespace Proyecto_Api.Controllers
     public class ProyectController : ControllerBase
     {
         private readonly ILogger<ProyectController> _logger;
-        private readonly DataBaseContext _database;
+        private readonly IPersonaRepositorie _personaRepositorie;
         private readonly IMapper _mapper;
 
-        public ProyectController(ILogger<ProyectController> logger, DataBaseContext dataBase, IMapper mapper)
+        public ProyectController(ILogger<ProyectController> logger, IPersonaRepositorie personaRepositorie, IMapper mapper)
         {
             _logger = logger;
-            _database = dataBase;
+            _personaRepositorie = personaRepositorie;
             _mapper = mapper;   
         }
 
@@ -33,7 +34,7 @@ namespace Proyecto_Api.Controllers
         {
             _logger.LogInformation("Obtener Personas");
 
-            IEnumerable<Persona> personaList = await _database.Persona.ToListAsync();
+            IEnumerable<Persona> personaList = await _personaRepositorie.findAll();
 
             return Ok(_mapper.Map<IEnumerable<Persona>>(personaList));
         }
@@ -55,7 +56,7 @@ namespace Proyecto_Api.Controllers
             //Metodo antiguo para pedir por Id
             //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
 
-            var perso = await _database.Persona.FirstOrDefaultAsync(p => p.Id == id);
+            var perso = await _personaRepositorie.find(p => p.Id == id);
 
 
             if (perso == null)
@@ -84,7 +85,7 @@ namespace Proyecto_Api.Controllers
 
             //Validacion del Modelo, Personalizado. En caso de que el nombre ya este utilizado//
             //Reemplazando el PersonaStore.personasList por el _database.Persona
-            if (await _database.Persona.FirstOrDefaultAsync(v => v.name.ToLower() == createPersonaDto.name.ToLower()) != null)
+            if (await _personaRepositorie.find(v => v.name.ToLower() == createPersonaDto.name.ToLower()) != null)
             {
                 ModelState.AddModelError("El nombre ya existe", "El nombre se encuentra en uso");
 
@@ -103,8 +104,7 @@ namespace Proyecto_Api.Controllers
 
             Persona modelo = _mapper.Map<Persona>(createPersonaDto);
 
-            await _database.Persona.AddAsync(modelo);
-            await _database.SaveChangesAsync();
+            await _personaRepositorie.create(modelo);
 
             return CreatedAtRoute("GetIdPersona", new { id = modelo.Id }, modelo);
         }
@@ -127,7 +127,7 @@ namespace Proyecto_Api.Controllers
             }
             //Reemplazando el PersonaStore.personasList por el _database.Persona
             //AssNoTracking... asincrona?(No es Async, es otra cosa)
-            var perso = await _database.Persona.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+            var perso = await _personaRepositorie.find(v => v.Id == id);
             if (perso == null)
             {
                 return NotFound();
@@ -135,8 +135,9 @@ namespace Proyecto_Api.Controllers
 
             //PersonaStore.personaList.Remove(perso);
             //return NoContent();
-            _database.Persona.Remove(perso);
-            await _database.SaveChangesAsync();
+
+            _personaRepositorie.delete(perso);
+
             return NoContent();
             
         }
@@ -156,8 +157,13 @@ namespace Proyecto_Api.Controllers
 
             Persona modelo = _mapper.Map<Persona>(updatePersonaDto);
 
-            _database.Update(modelo);
-            await _database.SaveChangesAsync();
+           var updatePersona = await _personaRepositorie.UpdatePersona(modelo);
+
+            if (updatePersona == null)
+            {
+                return BadRequest();
+            }
+          
             return NoContent();
 
         }
@@ -176,7 +182,7 @@ namespace Proyecto_Api.Controllers
 
             //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
 
-            var perso = await _database.Persona.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+            var perso = await _personaRepositorie.find(v => v.Id == id, Tracked:false);
 
             UpdatePersonaDto personaDto = _mapper.Map<UpdatePersonaDto>(perso);
 
@@ -192,8 +198,12 @@ namespace Proyecto_Api.Controllers
             Persona modelo = _mapper.Map<Persona>(personaDto);
 
 
-            _database.Update(modelo);
-           await _database.SaveChangesAsync();
+            var updatePersona = await _personaRepositorie.UpdatePersona(modelo);
+
+            if (updatePersona == null)
+            {
+                return BadRequest();
+            }
 
             return NoContent();
 

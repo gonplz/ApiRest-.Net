@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Proyecto_Api;
 using Proyecto_Api.Crud;
+using Proyecto_Api.Repository;
+using Proyecto_Api.Repository.IRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,8 @@ builder.Services.AddDbContext<DataBaseContext>(option=> {
 });
 
 builder.Services.AddAutoMapper(typeof(Mapping));
+
+builder.Services.AddScoped<IPersonaRepositorie,PersonaRepositorie>();
 
 var app = builder.Build();
 
