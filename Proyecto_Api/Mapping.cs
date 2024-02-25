@@ -8,14 +8,8 @@ namespace Proyecto_Api
     {
         public Mapping()
         {
-            //Forma antigua de mapear
-            //CreateMap<Persona, PersonaDto>();
-            //CreateMap<PersonaDto, Persona>();
-
             CreateMap<Persona,PersonaDto>().ReverseMap();
-
             CreateMap<Persona, CreatePersonaDto>().ReverseMap();
-
             CreateMap<Persona,UpdatePersonaDto>().ReverseMap();
         }
     }

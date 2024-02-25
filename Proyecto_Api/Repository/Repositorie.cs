@@ -7,7 +7,6 @@ namespace Proyecto_Api.Repository
 {
     public class Repositorie<T> : IRepositorie<T> where T : class
     {
-
         private readonly DataBaseContext _context;
         internal DbSet<T> dbSet;
 
@@ -16,7 +15,6 @@ namespace Proyecto_Api.Repository
             _context = dataBase;
             this.dbSet = _context.Set<T>();
         }
-
 
         public async Task create(T entity)
         {
@@ -44,7 +42,6 @@ namespace Proyecto_Api.Repository
 
             return await query.FirstOrDefaultAsync();
 
-
         }
 
         public async Task<List<T>> findAll(Expression<Func<T, bool>>? filtro = null)
@@ -56,13 +53,11 @@ namespace Proyecto_Api.Repository
             }
 
             return await query.ToListAsync();
-
         }
 
         public async Task Save()
         {
             await _context.SaveChangesAsync(); 
         }
-
     }
 }

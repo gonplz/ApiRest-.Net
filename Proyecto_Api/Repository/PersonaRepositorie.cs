@@ -7,14 +7,11 @@ namespace Proyecto_Api.Repository
 {
     public class PersonaRepositorie : Repositorie<Persona>, IPersonaRepositorie
     {
-
         private readonly DataBaseContext _context;
-
         public PersonaRepositorie(DataBaseContext baseContext) : base(baseContext) 
         {
               _context = baseContext;
         }
-
         public async Task<Persona> UpdatePersona(Persona entity)
         {
            _context.Persona.Update(entity);
