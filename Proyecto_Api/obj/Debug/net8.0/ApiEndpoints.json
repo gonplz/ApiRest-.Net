@@ -9,7 +9,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Proyecto_Api.Models.Dtos.PersonaDto, Proyecto_Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "Proyecto_Api.Models.Response",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -35,7 +35,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Proyecto_Api.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Response",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -187,7 +187,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Proyecto_Api.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Response",
         "MediaTypes": [
           "text/plain",
           "application/json",
