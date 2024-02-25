@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Proyecto_Api.Controllers.Models;
+using Proyecto_Api.Models;
 
 namespace Proyecto_Api.Crud
 {

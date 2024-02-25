@@ -9,7 +9,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Proyecto_Api.Controllers.Models.Dtos.PersonaDto, Proyecto_Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Proyecto_Api.Models.Dtos.PersonaDto, Proyecto_Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -29,13 +29,13 @@
     "Parameters": [
       {
         "Name": "personaDto",
-        "Type": "Proyecto_Api.Controllers.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Dtos.CreatePersonaDto",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "Proyecto_Api.Controllers.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Dtos.PersonaDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -114,7 +114,7 @@
       },
       {
         "Name": "personaDto",
-        "Type": "Proyecto_Api.Controllers.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Dtos.UpdatePersonaDto",
         "IsRequired": true
       }
     ],
@@ -187,7 +187,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Proyecto_Api.Controllers.Models.Dtos.PersonaDto",
+        "Type": "Proyecto_Api.Models.Dtos.PersonaDto",
         "MediaTypes": [
           "text/plain",
           "application/json",

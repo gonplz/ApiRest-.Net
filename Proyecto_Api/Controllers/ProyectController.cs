@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Proyecto_Api.Controllers.Models;
-using Proyecto_Api.Controllers.Models.Dtos;
 using Proyecto_Api.Crud;
 using Proyecto_Api.Data;
+using Proyecto_Api.Models;
+using Proyecto_Api.Models.Dtos;
 using System.Text.Json;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -66,8 +66,8 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
-        //El [FromBody] se utiliza para deserializar y rnasformar los bytes en Objetos (Funciona con el Post y Put, por el momento) // 
-        public ActionResult<PersonaDto> CreatePersona([FromBody] PersonaDto personaDto)
+        //El [FromBody] se utiliza para deserializar y transformar los bytes en Objetos (Funciona con el Post y Put, por el momento) // 
+        public ActionResult<PersonaDto> CreatePersona([FromBody] CreatePersonaDto personaDto)
         {
             ////Validacion del Modelo, para verifiar que funcione correctamente el metodo post//
             if (!ModelState.IsValid)
@@ -89,10 +89,6 @@ namespace Proyecto_Api.Controllers
             {
                 return BadRequest(personaDto);
             }
-            if (personaDto.Id > 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
 
             //Forma antigua
             //personaDto.Id = PersonaStore.personaList.OrderByDescending(v => v.Id).FirstOrDefault().Id + 1;
@@ -107,7 +103,7 @@ namespace Proyecto_Api.Controllers
             _database.Persona.Add(modelo);
             _database.SaveChanges();
 
-            return CreatedAtRoute("GetIdPersona", new { id = personaDto.Id }, personaDto);
+            return CreatedAtRoute("GetIdPersona", new { id = modelo.Id }, modelo);
         }
 
         ///////////////////////////////////////////////////////DELETE///////////////////////////////////////////////////////////////////////////
@@ -125,7 +121,7 @@ namespace Proyecto_Api.Controllers
                 return BadRequest();
             }
             //Reemplazando el PersonaStore.personasList por el _database.Persona
-            //AssNoTracking... peticion asincrona?
+            //AssNoTracking... asincrona?(No es Async, es otra cosa)
             var perso = _database.Persona.AsNoTracking().FirstOrDefault(v => v.Id == id);
             if (perso == null)
             {
@@ -146,7 +142,7 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
         //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
-        public IActionResult UpdatePersona(int id, [FromBody] PersonaDto personaDto )
+        public IActionResult UpdatePersona(int id, [FromBody] UpdatePersonaDto personaDto )
         {
             if(personaDto == null || id != personaDto.Id)
             {
@@ -175,8 +171,7 @@ namespace Proyecto_Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
-        //El Put me modifica todo, pero tienen que coincidir los id, porque sino me tira en Error status 400.
-        public IActionResult UpdateOnePersona(int id, JsonPatchDocument<PersonaDto> pachtDto)
+        public IActionResult UpdateOnePersona(int id, JsonPatchDocument<UpdatePersonaDto> pachtDto)
         {
             if (pachtDto == null || id == 0)
             {
@@ -185,9 +180,9 @@ namespace Proyecto_Api.Controllers
 
             //var perso = PersonaStore.personaList.FirstOrDefault(v => v.Id == id);
 
-            var perso = _database.Persona.FirstOrDefault(p=>p.Id == id);
+            var perso = _database.Persona.AsNoTracking().FirstOrDefault(v => v.Id == id);
 
-            PersonaDto persona = new()
+            UpdatePersonaDto persona = new()
             {
                 Id = perso.Id,
                 name = perso.name,
@@ -195,7 +190,7 @@ namespace Proyecto_Api.Controllers
 
             };
 
-            if (perso != null) return BadRequest();
+            if (perso == null) return BadRequest();
 
             pachtDto.ApplyTo(persona,ModelState);
             
@@ -219,12 +214,3 @@ namespace Proyecto_Api.Controllers
         }
     }
 }
-
-//Implementar el sigueinte metodo mas tarde
-//[HttpDelete("{id}")]
-//public IActionResult Delete(int id)
-//{var persona = _personas.Find(p => p.Id == id);
-//if (persona == null)
-//{return NotFound();}
-//persona.IsActive = false;
-//return NoContent();}

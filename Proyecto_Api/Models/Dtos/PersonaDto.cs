@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Proyecto_Api.Controllers.Models.Dtos
+namespace Proyecto_Api.Models.Dtos
 {
     public class PersonaDto
     {
@@ -9,8 +9,8 @@ namespace Proyecto_Api.Controllers.Models.Dtos
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-       [Required]
-       [MaxLength(30)]
+        [Required]
+        [MaxLength(30)]
         public string name { get; set; }
 
         public int number { get; set; }
