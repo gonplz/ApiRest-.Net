@@ -2,7 +2,7 @@
 
 # **Documentación de la API**
 
-Esta documentación describe el funcionamiento de una API para gestionar información de personas en un proyecto. La API utiliza el framework ASP.NET Core y está implementado en el lenguaje C#. 
+Esta documentación describe el funcionamiento de una API para gestionar información de personas en un proyecto. La API proporciona funcionamiento básico, utiliza Swagger para poder hacer peticiones, el framework ASP.NET Core y está implementado en el lenguaje C#. 
 
 ## **Descripción general**
 
