@@ -1,6 +1,6 @@
 ﻿namespace Proyecto_Api.HandlerException
 {
-    public class Middleware
+    internal class LoggingMiddleware
     {
     }
 }
