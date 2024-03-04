@@ -89,3 +89,9 @@ El controlador depende de los siguientes servicios:
 ## **Conclusiones**
 
 La API proporciona una interfaz simple y efectiva para gestionar información de personas en un proyecto. Los endpoints permiten realizar operaciones CRUD de manera segura y eficiente. Se recomienda utilizar esta documentación como referencia al interactuar con la API.
+
+## **Proximas Actualizaciones**
+
+**Vistas**
+**Seguridad**
+
