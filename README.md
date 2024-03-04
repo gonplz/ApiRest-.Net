@@ -92,6 +92,6 @@ La API proporciona una interfaz simple y efectiva para gestionar información de
 
 ## **Proximas Actualizaciones**
 
--**Vistas**
--**Seguridad**
+-**Vistas**.
+-**Seguridad**.
 
